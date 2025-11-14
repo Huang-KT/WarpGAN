@@ -1,0 +1,116 @@
+device: cuda:0
+exp_dir: ./experiments/pti/test
+
+data:
+  path: ./data/test_img
+  max_size: 10000
+  skip_batch: 0
+
+get_w_pivot: opt  # 'encoder' / 'opt' / 'hybrid'
+
+multi_views: True
+
+save:
+  save_wplus: False
+  save_pti: False
+  save_hfgi3d: False
+  save_video: True
+
+save_finetune_model: True
+save_w_pivot: ${save_finetune_model}
+
+hyperparameters:
+  first_inv_type: 'w'
+
+  ## Locality regularization
+  latent_ball_num_of_samples: 1
+  locality_regularization_interval: 1
+  use_locality_regularization: False
+  regulizer_l2_lambda: 0.1
+  regulizer_lpips_lambda: 0.1
+  regulizer_alpha: 30
+
+  ## Loss
+  pt_l2_lambda: 1
+  pt_lpips_lambda: 1
+  lpips_type: 'alex'
+
+  ## Steps
+  LPIPS_value_threshold: 0.06
+  max_pti_steps: 500
+  max_pti_steps_multiviews: 1000
+  first_inv_steps: 500
+  max_images_to_invert: 300
+
+  ## Optimization
+  pti_learning_rate: 3e-4
+  first_inv_lr: 5e-3
+  train_batch_size: 1
+  use_last_w_pivots: False
+
+evaluation_config:
+  evaluated_methods: ['e4e', 'SG2', 'SG2Plus']
+
+gan:
+  device: ${device}
+  eg3d_type: plus_r  # null / ori / ori_r / plus / plus_r
+  encoder_type: goae
+  psp:
+    n_styles: 14
+  goae:
+    mlp_layer: 2
+    cfg: ./configs/swinv2.yaml
+  state_dict_key: psp_state_dict
+  checkpoint_path: ./pretrained_models/inversion/gan_encoder.pt
+
+warp:
+  warp_ori_train: True  # True -> 512x512, False -> 256x256
+  warp_ori_val: True  ## True
+  warp_pred: False  ##
+  erode_kernel: 3  ## 3
+  gaussian_blur_kernel: 21  ## 21
+  hybrid: True
+
+ckpt_inpaintor: ./pretrained_models/inpaintor/inpaintor.pt
+
+generator:
+  kind: ffc_style_resnet  # ffc_resnet / ffc_style_resnet
+  input_nc: 4
+  output_nc: 3
+  ngf: 64
+  n_downsampling: 3
+  n_blocks: 9  ##
+  add_out_act: sigmoid
+  refine: False  ##
+  input_mirror: condition  # null / cat / condition
+  use_style: style_res  # null / style_res
+
+  init_conv_kwargs:
+    ratio_gin: 0
+    ratio_gout: 0
+    enable_lfu: False
+
+  downsample_conv_kwargs:
+    ratio_gin: ${generator.init_conv_kwargs.ratio_gout}
+    ratio_gout: ${generator.downsample_conv_kwargs.ratio_gin}
+    enable_lfu: False
+
+  resnet_conv_kwargs:
+    ratio_gin: 0.75
+    ratio_gout: ${generator.resnet_conv_kwargs.ratio_gin}
+    enable_lfu: False
+
+log:
+  use_wandb: False
+  image_rec_result_log_snapshot: 400
+
+###################################################
+defaults:
+  - _self_  
+  - override hydra/hydra_logging: disabled
+  - override hydra/job_logging: disabled
+
+hydra:  
+  output_subdir: null  
+  run:  
+    dir: .

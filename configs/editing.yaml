@@ -1,0 +1,88 @@
+device: cuda:0
+exp_dir: ./experiments/att_editing/test
+
+pti_path: ./experiments/pti/test
+
+get_w_pivot: opt  # 'encoder' / 'opt'
+
+editing:
+  type: interfacegan  # interfacegan / ganspace / styleclip
+  interfacegan:
+    factor: 0.8
+    att: anger
+    age: editings/goae_ws_edit/age.npy
+    glass: editings/goae_ws_edit/glass.npy
+    anger: editings/goae_ws_edit/anger.npy
+  # ganspace:
+  #   att: glass
+  #   pca_comp: ./editings/poi_ganspace/pca_comp/pca_ffhqrebalanced_10_5_frontcam.npy
+  styleclip:
+    att: elsa
+    factor: 0.08
+    no_coarse_mapper: False
+    no_medium_mapper: False
+    no_fine_mapper: True
+    elsa: ./editings/CLIPStyle/mapper_results/elsa/checkpoints/best_model.pt
+    eyeglasses: ./editings/CLIPStyle/mapper_results/eyeglasses/checkpoints/best_model.pt
+    surprised: ./editings/CLIPStyle/mapper_results/surprised/checkpoints/best_model.pt
+
+gan:
+  device: ${device}
+  eg3d_type: plus_r  # null / ori_pth / ori / ori_r / plus / plus_r
+  encoder_type: goae
+  psp:
+    n_styles: 14
+  goae:
+    mlp_layer: 2
+    cfg: ./configs/swinv2.yaml
+  state_dict_key: psp_state_dict
+  checkpoint_path: ./pretrained_models/inversion/gan_encoder.pt ##
+
+warp:
+  warp_ori_train: True  # True -> 512x512, False -> 256x256
+  warp_ori_val: True  ## True
+  warp_pred: False  ##
+  erode_kernel: 3  ## 3
+  gaussian_blur_kernel: 21  ## 21
+  hybrid: True
+
+ckpt_inpaintor: ./pretrained_models/inpaintor/inpaintor.pt
+
+generator:
+  kind: ffc_style_resnet  # ffc_resnet / ffc_style_resnet
+  input_nc: 4
+  output_nc: 3
+  ngf: 64
+  n_downsampling: 3
+  n_blocks: 9  ##
+  add_out_act: sigmoid
+  refine: False  ##
+  input_mirror: condition  # null / cat / condition
+  use_style: style_res  # null / style_res
+
+  init_conv_kwargs:
+    ratio_gin: 0
+    ratio_gout: 0
+    enable_lfu: False
+
+  downsample_conv_kwargs:
+    ratio_gin: ${generator.init_conv_kwargs.ratio_gout}
+    ratio_gout: ${generator.downsample_conv_kwargs.ratio_gin}
+    enable_lfu: False
+
+  resnet_conv_kwargs:
+    ratio_gin: 0.75
+    ratio_gout: ${generator.resnet_conv_kwargs.ratio_gin}
+    enable_lfu: False
+
+
+###################################################
+defaults:
+  - _self_  
+  - override hydra/hydra_logging: disabled
+  - override hydra/job_logging: disabled
+
+hydra:  
+  output_subdir: null  
+  run:  
+    dir: .

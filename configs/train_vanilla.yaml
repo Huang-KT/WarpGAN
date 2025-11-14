@@ -1,0 +1,84 @@
+device: cuda:0
+exp_dir: ./experiments/train_3dgan/goae_lpff_rebalanced_wdelta00005
+
+checkpoint_path: null
+
+max_steps: 500000  # 1500000
+
+data:
+  batch_size: 4
+  workers: 8
+  test_batch_size: 4
+  test_workers: 8
+  rebalanced: True  ##
+  add_LPFF: True  ##
+
+gan:
+  device: ${device}
+  eg3d_type: null  # null / ori_pth / ori / ori_r / plus / plus_r
+  encoder_type: goae  # psp / goae
+  psp:
+    n_styles: 14
+  goae:
+    mlp_layer: 2
+    cfg: ./configs/swinv2.yaml
+  state_dict_key: psp_state_dict
+  checkpoint_path: null
+
+disc:
+  able: False  ##
+  add_disc: 600000
+  checkpoint_path: ./pretrained_models/ffhq/discriminator.pth
+
+
+losses:
+  real:
+    ori:
+      l2: 1.0
+      lpips: 0.8
+      id: 0.1
+      w_norm: 0  # 0.001
+      w_delta_reg: 0.0005
+      depth: 0  ## 0.1
+    mirror:
+      weight: 0   ####  0.1
+      normalize_mirror: False
+      l2: ${losses.real.ori.l2}
+      lpips: ${losses.real.ori.lpips}
+      id: ${losses.real.ori.id}
+      # depth: ${losses.real.ori.depth}
+
+  disc:
+    adv: 0.005
+    d_r1_gamma: 10.0
+    d_reg_every: 16
+
+
+optimizers:
+  psp:
+    kind: 'ranger'
+    lr: 0.0001
+  disc:
+    kind: 'adam'
+    lr: 0.0001
+
+
+log:
+  image_interval: 500
+  board_interval: 100
+  val_interval: 10000
+  save_interval: 10000
+
+  use_wandb: False
+
+
+###################################################
+defaults:
+  - _self_  
+  - override hydra/hydra_logging: disabled
+  - override hydra/job_logging: disabled
+
+hydra:  
+  output_subdir: null  
+  run:  
+    dir: .
