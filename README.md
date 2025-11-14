@@ -15,7 +15,7 @@ source ./scripts/install_deps.sh
 
 
 ## Checkpoints
-We have uploaded the pre-trained models required for image preprocessing, training, inference, and editing to [Google Drive](https://drive.google.com/drive/folders/1GDh0KtrcFQRCUxTiLSJ1X81VP2zqFgfp?usp=sharing). After downloading, please place them in the corresponding directories (`./pose_estimation`, `./pretrained_models`, `./editings`).
+We have uploaded the pre-trained models required for image preprocessing, training, inference, and editing to [Google Drive](https://drive.google.com/drive/folders/1G9PeyrCS1gTyF3C957l6Key__t44aiIE?usp=sharing). After downloading, please place them in the corresponding directories (`./pose_estimation`, `./pretrained_models`, `./editings`).
 
 
 
@@ -68,7 +68,7 @@ Run the following command to synthesize novel-view images from the input. Config
 CUDA_VISIBLE_DEVICES=0 python scripts/infer.py
 ```
 
-### PTI
+## PTI
 Use novel-view images synthesized by WarpGAN to assist [PTI](https://github.com/danielroich/PTI) training. Config file is `configs/pti.yaml`.
 ```sh
 CUDA_VISIBLE_DEVICES=0 python ./scripts/run_pti.py
