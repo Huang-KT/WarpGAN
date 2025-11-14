@@ -35,7 +35,7 @@ cd ./pose_estimation
 python extract_pose.py 0 ori_data tmp_data align_data
 ```
 
-
+> We provide a few pre-processed images in `./data/test_img`; download our pre-trained weights and jump to [Inference](#inference) for a quick start.
 
 ## Training
 
